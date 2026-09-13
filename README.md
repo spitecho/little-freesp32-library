@@ -4,6 +4,12 @@ This turns your Freenove ESP32-S3 board into a WiFi hotspot that anyone
 can join to browse and read public-domain ebooks in their phone's
 browser — no app, no login, no internet connection needed.
 
+This project was 100% vibecoded using Claude, so feel free to fork and improve it as you see fit. It has only been tested on the Freenove ESP32-S3-WROOM-1 available here:
+
+```
+https://a.co/d/0cti42ni
+```
+
 **Files in this project:**
 
 * `free_library.ino` — the firmware you upload to the board
