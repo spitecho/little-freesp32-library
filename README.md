@@ -109,8 +109,8 @@ the board boot. You should see:
 ## Step 6: Try it out
 
 1. On your phone, join the WiFi network **"Little Free Library"**.
-2. Open a browser and go to **http://192.168.4.1**
-3. You should see your list of books, each with a **Read** button
+2. Click the "Sign in to Wi-Fi Network" to automatically open the book list. Alternatively, open a browser and go to **http://192.168.4.1**
+4. You should see your list of books, each with a **Read** button
 (opens the browser-based reader) and a **Download** link (saves the
 raw .epub file, e.g. for use in Kindle or another reader app).
 
