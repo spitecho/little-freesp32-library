@@ -18,7 +18,7 @@ browser — no app, no login, no internet connection needed.
 2. Open **File → Preferences**, and in "Additional Boards Manager URLs" paste:
 
 ```
-   https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package\\\_esp32\\\_index.json
+   https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
    ```
 
 3. Open **Tools → Board → Boards Manager**, search "esp32", and install it
@@ -85,12 +85,12 @@ Your SD card should now look like:
 ## Step 5: Upload the firmware
 
 1. Put the SD card back in the board.
-2. Open `free\\\_library.ino` in the Arduino IDE.
+2. Open `free_library.ino` in the Arduino IDE.
 3. (Optional) Near the top, change:
 
 ```cpp
-   const char\\\* AP\\\_SSID     = "Little Free Library";
-   const char\\\* AP\\\_PASSWORD = "";   // leave blank for an open network
+   const char* AP_SSID     = "Little Free Library";
+   const char* AP_PASSWORD = "";   // leave blank for an open network
    ```
 
 4. Click **Upload** (the right-arrow icon). The IDE will compile and
@@ -118,7 +118,7 @@ raw .epub file, e.g. for use in Kindle or another reader app).
 
 * **"SD card mount FAILED" in Serial Monitor** — check the card is
 fully inserted, and confirm it's formatted FAT32. If it still fails,
-double-check the SD pin numbers (`SD\\\_CLK`, `SD\\\_CMD`, `SD\\\_D0` near the
+double-check the SD pin numbers (`SD_CLK`, `SD_CMD`, `SD_D0` near the
 top of the sketch) against your specific board's manual — Freenove
 has a few board revisions with slightly different wiring.
 * **Page loads but no books show up** — make sure your `.epub` files
