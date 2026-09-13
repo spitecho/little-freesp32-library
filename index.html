@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Little Free Library</title>
+<style>
+  :root {
+    --wood: #6b4226;
+    --wood-dark: #4a2c18;
+    --paper: #fdf6e9;
+    --ink: #2b2119;
+    --accent: #b5651d;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--paper);
+    color: var(--ink);
+  }
+  header {
+    background: var(--wood);
+    color: var(--paper);
+    padding: 18px 16px;
+    text-align: center;
+  }
+  header h1 { margin: 0; font-size: 1.4em; }
+  header p { margin: 4px 0 0; font-size: 0.85em; opacity: 0.85; }
+
+  #library { padding: 12px 16px 60px; max-width: 640px; margin: 0 auto; }
+
+  .book {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    background: #fff;
+    border: 1px solid #e4d8c3;
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+  }
+  .book .title {
+    font-size: 1.05em;
+    word-break: break-word;
+  }
+  .book .actions { display: flex; gap: 8px; flex-shrink: 0; }
+  .book button, .book a {
+    font-family: inherit;
+    font-size: 0.85em;
+    padding: 7px 12px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .btn-read { background: var(--accent); color: #fff; }
+  .btn-download { background: #eee; color: var(--ink); border: 1px solid #ccc; }
+
+  #status { text-align: center; padding: 30px 16px; color: #8a7a63; }
+
+  /* --- Reader view --- */
+  #reader-view {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: var(--paper);
+    z-index: 10;
+    flex-direction: column;
+  }
+  #reader-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--wood-dark);
+    color: var(--paper);
+    padding: 10px 12px;
+  }
+  #reader-bar button {
+    background: none;
+    border: 1px solid var(--paper);
+    color: var(--paper);
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 0.85em;
+    cursor: pointer;
+  }
+  #reader-title { font-size: 0.9em; text-align: center; flex: 1; padding: 0 8px; word-break: break-word; }
+  #viewer { flex: 1; overflow: hidden; }
+  #reader-nav {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 16px;
+    background: var(--wood-dark);
+  }
+  #reader-nav button {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 22px;
+    font-size: 1em;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>📚 Little Free Library</h1>
+  <p>Public-domain ebooks — read here, no app needed</p>
+</header>
+
+<div id="library">
+  <div id="status">Loading books…</div>
+</div>
+
+<!-- Reader overlay -->
+<div id="reader-view">
+  <div id="reader-bar">
+    <button id="btn-close">✕ Close</button>
+    <div id="reader-title"></div>
+    <div style="width:60px"></div>
+  </div>
+  <div id="viewer"></div>
+  <div id="reader-nav">
+    <button id="btn-prev">‹ Prev</button>
+    <button id="btn-next">Next ›</button>
+  </div>
+</div>
+
+<!-- These files must live on the SD card next to index.html.
+     See the README for where to download them. -->
+<script src="/jszip.min.js"></script>
+<script src="/epub.min.js"></script>
+
+<script>
+  const libraryEl = document.getElementById('library');
+  const statusEl = document.getElementById('status');
+  const readerView = document.getElementById('reader-view');
+  const readerTitle = document.getElementById('reader-title');
+  let rendition = null;
+
+  // --- Load the book list from the ESP32 ---
+  fetch('/books')
+    .then(r => r.json())
+    .then(books => {
+      if (!books.length) {
+        statusEl.textContent = 'No books found yet. Add .epub files to the /books folder on the SD card.';
+        return;
+      }
+      statusEl.remove();
+      books.forEach(addBookRow);
+    })
+    .catch(() => {
+      statusEl.textContent = 'Could not load the book list. Is the SD card inserted?';
+    });
+
+  function niceTitle(filename) {
+    return filename.replace(/\.epub$/i, '').replace(/[_-]+/g, ' ');
+  }
+
+  function addBookRow(book) {
+    const row = document.createElement('div');
+    row.className = 'book';
+
+    const title = document.createElement('div');
+    title.className = 'title';
+    title.textContent = niceTitle(book.name);
+
+    const actions = document.createElement('div');
+    actions.className = 'actions';
+
+    const readBtn = document.createElement('button');
+    readBtn.className = 'btn-read';
+    readBtn.textContent = 'Read';
+    readBtn.onclick = () => openReader('/books/' + book.name, niceTitle(book.name));
+
+    const dlLink = document.createElement('a');
+    dlLink.className = 'btn-download';
+    dlLink.textContent = 'Download';
+    dlLink.href = '/books/' + book.name + '?download=1';
+
+    actions.appendChild(readBtn);
+    actions.appendChild(dlLink);
+    row.appendChild(title);
+    row.appendChild(actions);
+    libraryEl.appendChild(row);
+  }
+
+  // --- Browser-based reader, powered by epub.js ---
+  function openReader(url, title) {
+    readerTitle.textContent = title;
+    readerView.style.display = 'flex';
+    document.getElementById('viewer').innerHTML = '';
+
+    const book = ePub(url);
+    rendition = book.renderTo('viewer', { width: '100%', height: '100%' });
+    rendition.display();
+
+    // Left/right edge taps to turn pages, like a real book
+    rendition.on('rendered', () => {
+      const iframe = document.querySelector('#viewer iframe');
+      if (!iframe) return;
+      const doc = iframe.contentDocument;
+      doc.addEventListener('click', e => {
+        const w = doc.defaultView.innerWidth;
+        if (e.clientX < w * 0.3) rendition.prev();
+        else if (e.clientX > w * 0.7) rendition.next();
+      });
+    });
+  }
+
+  document.getElementById('btn-prev').onclick = () => rendition && rendition.prev();
+  document.getElementById('btn-next').onclick = () => rendition && rendition.next();
+  document.getElementById('btn-close').onclick = () => {
+    readerView.style.display = 'none';
+    if (rendition) { rendition.destroy(); rendition = null; }
+  };
+</script>
+
+</body>
+</html>
