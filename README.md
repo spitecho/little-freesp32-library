@@ -1,4 +1,4 @@
-# ESP32-S3 Little Free Library — Setup Guide
+# Little FreESP32 Library — Setup Guide
 
 This turns your Freenove ESP32-S3 board into a WiFi hotspot that anyone
 can join to browse and read public-domain ebooks in their phone's
