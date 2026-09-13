@@ -6,9 +6,9 @@ browser — no app, no login, no internet connection needed.
 
 **Files in this project:**
 
-* `free\\\_library.ino` — the firmware you upload to the board
+* `free_library.ino` — the firmware you upload to the board
 * `index.html` — the webpage visitors see (goes on the SD card)
-* `free\\\_library-no\\\_captive\\\_portal.ino` — Alternative firmware with no captive portal
+* `free_library-no_captive_portal.ino` — Alternative firmware with no captive portal
 
 \---
 
